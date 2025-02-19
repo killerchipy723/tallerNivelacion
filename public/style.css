@@ -1,0 +1,42 @@
+/* Imagen de fondo de la página principal */
+.hero-image {
+    background-image: url('public/images/impresora3d.jpg');
+    background-size: cover;
+    background-position: center;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.hero-text {
+    text-align: center;
+    color: white;
+    text-shadow: 2px 2px 4px #000000;
+}
+
+.hero-text h1 {
+    font-size: 2em;
+    font-weight: bold;
+}
+
+.hero-text h2 {
+    font-size: 2em;
+}
+
+.btn-container {
+    margin-top: 20px;
+}
+
+.btn {
+    margin: 10px;
+    padding: 15px 30px;
+    font-size: 1.2em;
+    border-radius: 8px;
+    transition: transform 0.3s ease, background-color 0.3s ease;
+}
+
+.btn:hover {
+    transform: scale(1.1);
+    background-color: #5a5a5a;
+}

@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Capacitación de Impresión 3D</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body, html {
+            height: 100%;
+            margin: 0;
+            background: #9fb3e7;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Hero section */
+        .hero-image {
+            background-image: url('public/images/impresora3d.jpg'); /* Asegúrate de que la ruta sea correcta */
+            background-size: cover;
+            background-position: center;
+            height: 80vh; /* Ajustamos la altura para hacer espacio al footer */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            text-shadow: 2px 2px 4px #000000;
+            text-align: center;
+        }
+
+        .hero-text h1 {
+            font-size: 2.8em;
+            font-weight: bold;
+            margin: 0;
+        }
+
+        .hero-text h4 {
+            font-size: 1.5em;
+            margin: 10px 0;
+        }
+
+        /* Botones en columna con efectos */
+        .btn-container {
+            margin-top: 30px;
+            display: flex;
+            flex-direction: column; /* Cambia los botones a una columna */
+            align-items: center;
+        }
+
+        .btn {
+            margin: 10px 0; /* Cambia los márgenes para ajustarse al nuevo formato */
+            padding: 15px 30px;
+            font-size: 1.2em;
+            border-radius: 8px;
+            transition: transform 0.3s ease, background-color 0.3s ease, box-shadow 0.3s ease;
+            width: 200px;
+        }
+
+        .btn:hover {
+            transform: scale(1.1);
+            background-color: #5a5a5a;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2); /* Añade una sombra al pasar el cursor */
+        }
+
+        /* Estilo para el footer */
+        footer {
+            background-color: #343a40;
+            color: white;
+            padding: 20px 0;
+            text-align: center;
+            margin-top: auto; /* Esto permite que el footer se quede al final sin desplazamiento */
+        }
+
+        footer p {
+            margin: 0;
+            font-size: 0.9em;
+        }
+
+        footer a {
+            color: #ffffff;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        footer a:hover {
+            color: #adb5bd;
+            text-decoration: underline;
+        }
+
+    </style>
+</head>
+<body>
+    <div class="hero-image">
+        <div class="hero-text">
+            <h1>CAPACITACIÓN DE IMPRESORAS 3D</h1>
+            <h4>I.E.S N° 6.021 Juan Carlos Daválos</h4>
+            <div class="btn-container">
+                <!-- Botón Regístrate con ícono -->
+                <a href="/register-page" class="btn btn-primary">
+                    <i class="fas fa-user-plus"></i> Regístrate
+                </a>
+                <!-- Botón Dar Presente con ícono -->
+                <a href="/attendance-page" class="btn btn-success">
+                    <i class="fas fa-check-circle"></i> Dar Presente
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <p>&copy; 2024 Todos los derechos reservados | Página diseñada con fines educativos por alumnos de tercer año del Profesorado de Informática</p>
+        <p>Instituto de Educación Superior N° 6.021 "Juan Carlos Daválos"</p>
+    </footer>
+</body>
+</html>

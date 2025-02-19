@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro de Asistencia</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container">
+        <h2>Registro de Asistencia</h2>
+        <form id="buscarAlumnoForm">
+            <div class="form-group">
+                <label for="dni">Ingrese su DNI</label>
+                <input type="text" class="form-control" id="dni" name="dni" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Buscar Alumno</button>
+        </form>
+
+        <div id="alumnoInfo" style="display:none; margin-top:20px;">
+            <h4>Datos del Alumno</h4>
+            <p id="nombreAlumno"></p>
+            <button id="darPresenteBtn" class="btn btn-success">Dar Presente</button>
+        </div>
+
+        <!-- Alerta de éxito o error -->
+        <div id="alertMessage" class="alert" role="alert" style="display:none;"></div>
+
+        <!-- Tabla de asistencia -->
+        <table id="asistenciaTabla" class="table table-bordered" style="display:none; margin-top: 20px;">
+            <thead>
+                <tr>
+                    <th>ID Asistencia</th>
+                    <th>Nombre y Apellido</th>
+                    <th>Documento</th>
+                    <th>Fecha</th>
+                    <th>Estado</th>
+                </tr>
+            </thead>
+            <tbody id="asistenciaBody">
+                <!-- Aquí se insertarán las filas de la tabla -->
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        // Evento para buscar el alumno por DNI
+        let doc = 0;
+        document.getElementById('buscarAlumnoForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+            const dni = document.getElementById('dni').value;
+
+
+            fetch('/buscar-alumno', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: new URLSearchParams({ dni })
+               
+            })
+            .then(response => response.json())
+            .then(data => {
+                const alertMessage = document.getElementById('alertMessage');
+                if (data.success) {
+                    document.getElementById('nombreAlumno').textContent = `Nombre: ${data.alumno.apellidos} ${data.alumno.nombres}`;
+                    document.getElementById('alumnoInfo').style.display = 'block';
+                    document.getElementById('darPresenteBtn').dataset.idalumno = data.alumno.idalumno;
+                    alertMessage.style.display = 'none';
+                } else {
+                    alertMessage.className = 'alert alert-warning';
+                    alertMessage.textContent = 'Alumno no encontrado.';
+                    alertMessage.style.display = 'block';
+                }
+            })
+            .catch(err => console.error('Error:', err));
+        });
+
+        // Evento para registrar asistencia
+        document.getElementById('darPresenteBtn').addEventListener('click', function () {
+            const idalumno = this.dataset.idalumno;
+
+            fetch('/registrar-asistencia', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: new URLSearchParams({ idalumno })
+                
+            })
+            .then(response => response.json())
+            .then(data => {
+                const alertMessage = document.getElementById('alertMessage');
+                if (data.success) {
+                    alertMessage.className = 'alert alert-success';
+                    alertMessage.textContent = 'Asistencia registrada con éxito.';
+                    alertMessage.style.display = 'block';
+                    setTimeout(() => {
+                window.location.href = '/'; 
+                     }, 3000);
+                    // Después de registrar la asistencia, consultar los registros de asistencia
+                    consultarAsistencia(dni);
+                } else {
+                    alertMessage.className = 'alert alert-warning';
+                    alertMessage.textContent = data.message;
+                    alertMessage.style.display = 'block';
+                }
+            })
+            .catch(err => console.error('Error:', err));
+        });
+
+        // Función para consultar asistencia
+        function consultarAsistencia(dni) {
+            fetch('/consultar-asistencia', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ dni })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const asistenciaBody = document.getElementById('asistenciaBody');
+                    asistenciaBody.innerHTML = ''; // Limpiar tabla
+
+                    // Mostrar la tabla
+                    document.getElementById('asistenciaTabla').style.display = 'table';
+
+                    // Insertar las filas en la tabla
+                    data.asistencias.forEach(asistencia => {
+                        const row = `<tr>
+                            <td>${asistencia.idasistencia}</td>
+                            <td>${asistencia.apenomb}</td>
+                            <td>${asistencia.dni}</td>
+                            <td>${new Date(asistencia.fecha).toLocaleDateString()}</td>
+                            <td>${asistencia.estado}</td>
+                        </tr>`;
+                        asistenciaBody.innerHTML += row;
+                    });
+                } else {
+                    //alert('No se encontró asistencia para este alumno.');
+                }
+            })
+            .catch(error => console.log('Error:', error));
+        }
+    </script>
+</body>
+</html>
+

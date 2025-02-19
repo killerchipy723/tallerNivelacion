@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro de Alumnos</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container">
+        <h2>Registrar Alumno</h2>
+        <form id="registerForm">
+            <div class="form-group">
+                <label for="apenomb">Nombre y Apellido</label>
+                <input type="text" class="form-control" id="apenomb" name="apenomb" required oninput="capitalizeWords(this)">
+            </div>
+            <div class="form-group">
+                <label for="dni">DNI</label>
+                <input type="text" class="form-control" id="dni" name="dni" required>
+            </div>
+            <div class="form-group">
+                <label for="carrera">Carrera</label>
+                <select class="form-control" id="carrera" name="carrera" required>
+                    <!-- Opciones de carrera -->
+                    <option value="Prof. de Informática">Prof. de Informática</option>
+                   <option value="Prof. de Informática">Prof. de Historia</option>
+                   <option value="Prof. de Informática">Prof. de Lengua y Literatura</option>
+                   <option value="Prof. de Informática">Prof. de Ed. Especial</option>
+                   <option value="Prof. de Informática">Prof. de Biología</option>
+                   <option value="Prof. de Informática">Tec. Sup. en Gestión Pública</option>
+                   <option value="Prof. de Informática">Tec. Sup. en Seguridad e Higiere en el Trabajo</option>
+                   <option value="Prof. de Informática">Tec. Sup. en Laboratorio</option>
+                   <option value="Prof. de Informática">Tec. Sup. en Informática</option>
+                   <option value="Prof. de Informática">Otros</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="anio">Año</label>
+                <select class="form-control" id="anio" name="anio" required>
+                    <option value="1">1er Año</option>
+                    <option value="2">2do Año</option>
+                    <option value="3">3er Año</option>
+                    <option value="4">4to Año</option>
+                </select>
+            </div>
+            <button type="submit" class="btn btn-primary">Registrar</button>
+        </form>
+
+        <!-- Alerta de éxito o error -->
+        <div id="alertMessage" class="alert" role="alert" style="display:none;"></div>
+    </div>
+
+    <script>
+        document.getElementById('registerForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+    const formData = new URLSearchParams(new FormData(this)).toString();
+
+    fetch('/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        const alertMessage = document.getElementById('alertMessage');
+        if (data.success) {
+            alertMessage.className = 'alert alert-success';
+            alertMessage.textContent = 'Alumno registrado con éxito. Redirigiendo a la página principal...';
+            alertMessage.style.display = 'block';
+            setTimeout(() => {
+                window.location.href = '/'; // Redirigir a la página principal
+            }, 3000);
+        } else {
+            alertMessage.className = 'alert alert-warning'; // Mensaje de advertencia si ya está registrado
+            alertMessage.textContent = data.message; // Mostrar el mensaje del servidor
+            alertMessage.style.display = 'block';
+        }
+    })
+    .catch(err => {
+        console.error('Error:', err);
+    });
+});
+    </script>
+    <script>
+        function capitalizeWords(input) {
+            // Captura el valor actual del campo input
+            let words = input.value.toLowerCase().split(' ');
+        
+            // Capitaliza la primera letra de cada palabra
+            words = words.map(word => word.charAt(0).toUpperCase() + word.slice(1));
+        
+            // Une las palabras capitalizadas y las reasigna al input
+            input.value = words.join(' ');
+        }
+        </script>
+        
+</body>
+</html>
+

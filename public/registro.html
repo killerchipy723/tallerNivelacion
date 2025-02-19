@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro de Asistencia</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <h1 class="my-4">Registro de Asistencia</h1>
+        
+        <!-- Formulario para seleccionar la fecha -->
+        <form id="fechaForm" class="mb-4">
+            <div class="form-group">
+                <label for="fecha">Seleccione la fecha:</label>
+                <input type="date" class="form-control" id="fecha" name="fecha" required>
+            </div>
+            <button type="submit" class="btn btn-primary mt-2">Buscar</button>
+            <!-- Nuevo botón para imprimir PDF -->
+            <button type="button" class="btn btn-success mt-2" id="imprimirBtn">Imprimir PDF</button>
+        </form>
+
+        <!-- Tabla de resultados -->
+        <table class="table table-bordered table-striped">
+            <thead class="thead-dark">
+                <tr>
+                    <th>ID Asistencia</th>
+                    <th>Alumno</th>
+                    <th>Documento</th>                 
+                    <th>Fecha</th>
+                    <th>Estado</th>
+                </tr>
+            </thead>
+            <tbody id="asistenciaTabla">
+                <!-- Los datos de la tabla serán insertados aquí dinámicamente -->
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        // Función para realizar la búsqueda de asistencia
+        document.getElementById('fechaForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const fecha = document.getElementById('fecha').value;
+
+            if (!fecha) {
+                alert('Por favor, seleccione una fecha.');
+                return;
+            }
+
+            fetch(`/asistencia?fecha=${fecha}`)
+                .then(response => response.json())
+                .then(data => {
+                    const tabla = document.getElementById('asistenciaTabla');
+                    tabla.innerHTML = ''; // Limpiar la tabla
+
+                    if (data.length === 0) {
+                        tabla.innerHTML = `<tr><td colspan="5" class="text-center">No se encontraron registros para esta fecha.</td></tr>`;
+                    }
+
+                    data.forEach(asistencia => {
+                        const fila = `
+                            <tr>
+                                <td>${asistencia.idasistencia}</td>
+                                <td>${asistencia.apenomb}</td>
+                                <td>${asistencia.dni}</td>
+                                <td>${asistencia.fecha}</td>
+                                <td>${asistencia.estado}</td>
+                            </tr>
+                        `;
+                        tabla.innerHTML += fila;
+                    });
+                })
+                .catch(error => {
+                    console.error('Error al obtener los datos:', error);
+                });
+        });
+
+        // Evento para el botón de Imprimir PDF
+        document.getElementById('imprimirBtn').addEventListener('click', function() {
+            const fecha = document.getElementById('fecha').value;
+            
+
+
+            if (!fecha) {
+                alert('Por favor, seleccione una fecha para generar el PDF.');
+                return;
+            }
+
+            // Abre la URL del PDF en una nueva pestaña usando la fecha capturada
+            window.open(`/asistencia/pdf?fecha=${fecha}`, '_blank');
+        });
+    </script>
+</body>
+</html>
