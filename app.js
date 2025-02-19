@@ -268,8 +268,8 @@ LEFT JOIN
     carrerag c2 ON p.idcarrera = c2.idcarrera
 WHERE 
     a.fecha = ? 
-    AND p.estado = 'Activo
-    AND p.idcarrera= ?'
+    AND p.estado = 'Activo'
+    AND p.idcarrera = ?
     `;
 
     db.query(query, [fecha,carrera], (error, results) => {
