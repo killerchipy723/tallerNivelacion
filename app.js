@@ -237,7 +237,7 @@ WHERE
             const year = date.getFullYear();
             row.fecha = `${day}/${month}/${year}`;
         });
-        
+
 
         res.json(results); // Devolver los resultados en formato JSON
     });
@@ -245,7 +245,7 @@ WHERE
 
 
 app.get('/asistencia/pdf', (req, res) => {
-    const { fecha } = req.query;
+    const { fecha,carrera } = req.query;
     console.log('Fecha recibida:', fecha);
 
     const query = `
@@ -268,10 +268,11 @@ LEFT JOIN
     carrerag c2 ON p.idcarrera = c2.idcarrera
 WHERE 
     a.fecha = ? 
-    AND p.estado = 'Activo'
+    AND p.estado = 'Activo
+    AND p.idcarrera= ?'
     `;
 
-    db.query(query, [fecha], (error, results) => {
+    db.query(query, [fecha,carrera], (error, results) => {
         if (error) {
             console.error('Error al generar el PDF:', error);
             return res.status(500).send('Error al generar el PDF');
