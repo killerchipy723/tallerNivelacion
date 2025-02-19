@@ -288,7 +288,7 @@ app.get('/asistencia/pdf', (req, res) => {
                     color: '#007BFF' // Color del título
                 },
                 subheader: {
-                    fontSize: 12,
+                    fontSize: 11,
                     margin: [0, 0, 0, 20]
                 },
                 tableExample: {
