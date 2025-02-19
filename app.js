@@ -237,6 +237,7 @@ WHERE
             const year = date.getFullYear();
             row.fecha = `${day}/${month}/${year}`;
         });
+        
 
         res.json(results); // Devolver los resultados en formato JSON
     });
