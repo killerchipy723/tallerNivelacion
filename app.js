@@ -65,6 +65,22 @@ app.get('/attendance-page', (req, res) => {
     res.sendFile(path.join(__dirname, 'public/asistencia.html'));
 });
 
+////////// combo carreras ////////////////////
+
+app.get('/carreras', (req, res) => {
+    const query = 'SELECT idcarrera, nombre FROM carreras';
+    
+    db.query(query, (error, results) => {
+        if (error) {
+            console.error('Error al obtener las carreras:', error);
+            return res.status(500).send('Error al obtener las carreras');
+        }
+
+        res.json(results); // Devolver los resultados como JSON
+    });
+});
+
+
 
 
 // Ruta para buscar alumno por DNI
@@ -147,14 +163,24 @@ app.post('/registrar-asistencia', (req, res) => {
 app.post('/consultar-asistencia', (req, res) => {
     const { dni } = req.body;
     const query = `
-        SELECT a.idasistencia, 
-       CONCAT(al.apellidos, ' ', al.nombres) AS apenomb,
-        al.dni, 
-        a.fecha, 
-        a.estado 
-        FROM asistencia a
-        JOIN alumno al ON a.idalumno = al.idalumno
-        WHERE al.dni = ?;
+        SELECT 
+    a.idasistencia, 
+    CONCAT(al.apellidos, ' ', al.nombres) AS apenomb,  
+    al.dni,      
+    a.fecha, 
+    a.estado, 
+    COALESCE(c.nombre, c2.nombre) AS carrera
+FROM 
+    asistencia a
+JOIN 
+    alumno al ON a.idalumno = al.idalumno
+JOIN 
+    preinscripcion p ON al.idalumno = p.idalumno
+LEFT JOIN 
+    carreras c ON p.idcarrera = c.idcarrera
+LEFT JOIN 
+    carrerag c2 ON p.idcarrera = c2.idcarrera
+WHERE al.dni = ?;
     `;
 
     db.query(query, [dni], (err, result) => {
@@ -171,20 +197,33 @@ app.post('/consultar-asistencia', (req, res) => {
 });
 // Ruta para obtener las asistencias por fecha
 app.get('/asistencia', (req, res) => {
-    const { fecha } = req.query;
+    const { fecha,carrera } = req.query;
     if (!fecha) {
         return res.status(400).json({ error: 'Debe proporcionar una fecha' });
     }
-    const sql = `SELECT a.idasistencia, 
-       CONCAT(al.apellidos, ' ', al.nombres) AS apenomb,
-        al.dni, 
-        a.fecha, 
-        a.estado 
-        FROM asistencia a
-        JOIN alumno al ON a.idalumno = al.idalumno
-        WHERE a.fecha = ?;`;
+    const sql = `SELECT 
+    a.idasistencia, 
+    CONCAT(al.apellidos, ' ', al.nombres) AS apenomb,  
+    al.dni,      
+    a.fecha, 
+    a.estado, 
+    COALESCE(c.nombre, c2.nombre) AS carrera
+FROM 
+    asistencia a
+JOIN 
+    alumno al ON a.idalumno = al.idalumno
+JOIN 
+    preinscripcion p ON al.idalumno = p.idalumno
+LEFT JOIN 
+    carreras c ON p.idcarrera = c.idcarrera
+LEFT JOIN 
+    carrerag c2 ON p.idcarrera = c2.idcarrera
+WHERE 
+    a.fecha = ? 
+    AND p.estado = 'Activo'
+    AND p.idcarrera = ?`;
 
-    db.query(sql, [fecha], (error, results) => {
+    db.query(sql, [fecha,carrera], (error, results) => {
         if (error) {
             console.error('Error en la consulta:', error);
             return res.status(500).json({ error: 'Error al obtener los datos' });
@@ -209,14 +248,26 @@ app.get('/asistencia/pdf', (req, res) => {
     console.log('Fecha recibida:', fecha);
 
     const query = `
-       SELECT a.idasistencia, 
-       CONCAT(al.apellidos, ' ', al.nombres) AS apenomb,  
-       al.dni,      
-       a.fecha, 
-       a.estado 
-        FROM asistencia a
-        JOIN alumno al ON a.idalumno = al.idalumno
-        WHERE a.fecha = ?;
+      SELECT 
+    a.idasistencia, 
+    CONCAT(al.apellidos, ' ', al.nombres) AS apenomb,  
+    al.dni,      
+    a.fecha, 
+    a.estado, 
+    COALESCE(c.nombre, c2.nombre) AS carrera
+FROM 
+    asistencia a
+JOIN 
+    alumno al ON a.idalumno = al.idalumno
+JOIN 
+    preinscripcion p ON al.idalumno = p.idalumno
+LEFT JOIN 
+    carreras c ON p.idcarrera = c.idcarrera
+LEFT JOIN 
+    carrerag c2 ON p.idcarrera = c2.idcarrera
+WHERE 
+    a.fecha = ? 
+    AND p.estado = 'Activo'
     `;
 
     db.query(query, [fecha], (error, results) => {
@@ -234,12 +285,14 @@ app.get('/asistencia/pdf', (req, res) => {
                 apenomb: asistencia.apenomb || 'Nombre no disponible',
                 dni: asistencia.dni || 'Sin DNI',
                 fecha: fechaFormatted || 'Fecha no disponible',
-                estado: asistencia.estado || 'Estado no disponible'
+                estado: asistencia.estado || 'Estado no disponible',
+                 carrera: asistencia.carrera || 'Estado no disponible'
             };
         });
 
         // Definición de la estructura del PDF
         const docDefinition = {
+            pageOrientation: 'landscape',  
             content: [
                 {
                     text: 'Registro de Asistencias\nTALLER DE NIVELACIÓN Y AMBIENTACIÓN\nI.E.S 6.021 Juan Carlos Dávalos',
@@ -252,21 +305,24 @@ app.get('/asistencia/pdf', (req, res) => {
                     style: 'tableExample',
                     table: {
                         headerRows: 1,
-                        widths: [30, 250, 'auto', 'auto', 'auto'],
+                        widths: [30, 250, 'auto', 'auto', 'auto','auto'],
                         body: [
                             [
                                 { text: 'ID', style: 'tableHeader' },
                                 { text: 'Alumno', style: 'tableHeader' },
                                 { text: 'Documento', style: 'tableHeader' },                                 
                                 { text: 'Fecha', style: 'tableHeader' },
-                                { text: 'Estado', style: 'tableHeader' }
+                                { text: 'Estado', style: 'tableHeader' },
+                                { text: 'Carrera', style: 'tableHeader' }
                             ],
                             ...validResults.map(asistencia => [
                                 asistencia.idasistencia,
                                 asistencia.apenomb,
                                 asistencia.dni,                            
                                 asistencia.fecha, // Usamos la fecha formateada
-                                asistencia.estado
+                                asistencia.estado,
+                                asistencia.carrera
+                                
                             ])
                         ]
                     },
@@ -318,6 +374,8 @@ app.get('/asistencia/pdf', (req, res) => {
         });
     });
 });
+
+
 
 
 // Iniciar el servidor

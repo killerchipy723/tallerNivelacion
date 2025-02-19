@@ -10,11 +10,18 @@
     <div class="container">
         <h1 class="my-4">Registro de Asistencia</h1>
         
-        <!-- Formulario para seleccionar la fecha -->
+        <!-- Formulario para seleccionar la fecha y la carrera -->
         <form id="fechaForm" class="mb-4">
             <div class="form-group">
                 <label for="fecha">Seleccione la fecha:</label>
                 <input type="date" class="form-control" id="fecha" name="fecha" required>
+            </div>
+            <div class="form-group mt-3">
+                <label for="carrera">Seleccione la carrera:</label>
+                <select class="form-control" id="carrera" name="carrera" required>
+                    <option value="">Seleccione una carrera</option>
+                    <!-- Las opciones se llenarán aquí dinámicamente -->
+                </select>
             </div>
             <button type="submit" class="btn btn-primary mt-2">Buscar</button>
             <!-- Nuevo botón para imprimir PDF -->
@@ -30,6 +37,7 @@
                     <th>Documento</th>                 
                     <th>Fecha</th>
                     <th>Estado</th>
+                    <th>Carrera</th>
                 </tr>
             </thead>
             <tbody id="asistenciaTabla">
@@ -39,24 +47,48 @@
     </div>
 
     <script>
+        // Función para cargar las carreras en el combobox
+        function cargarCarreras() {
+            fetch('/carreras')
+                .then(response => response.json())
+                .then(data => {
+                    const selectCarrera = document.getElementById('carrera');
+                    selectCarrera.innerHTML = '<option value="">Seleccione una carrera</option>'; // Limpiar las opciones previas
+
+                    data.forEach(carrera => {
+                        const option = document.createElement('option');
+                        option.value = carrera.idcarrera;
+                        option.textContent = carrera.nombre;
+                        selectCarrera.appendChild(option);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error al cargar las carreras:', error);
+                });
+        }
+
+        // Llamar la función para cargar las carreras cuando la página cargue
+        window.onload = cargarCarreras;
+
         // Función para realizar la búsqueda de asistencia
         document.getElementById('fechaForm').addEventListener('submit', function(event) {
             event.preventDefault();
             const fecha = document.getElementById('fecha').value;
+            const carrera = document.getElementById('carrera').value;
 
-            if (!fecha) {
-                alert('Por favor, seleccione una fecha.');
+            if (!fecha || !carrera) {
+                alert('Por favor, seleccione una fecha y una carrera.');
                 return;
             }
 
-            fetch(`/asistencia?fecha=${fecha}`)
+            fetch(`/asistencia?fecha=${fecha}&carrera=${carrera}`)
                 .then(response => response.json())
                 .then(data => {
                     const tabla = document.getElementById('asistenciaTabla');
                     tabla.innerHTML = ''; // Limpiar la tabla
 
                     if (data.length === 0) {
-                        tabla.innerHTML = `<tr><td colspan="5" class="text-center">No se encontraron registros para esta fecha.</td></tr>`;
+                        tabla.innerHTML = `<tr><td colspan="6" class="text-center">No se encontraron registros para esta fecha y carrera.</td></tr>`;
                     }
 
                     data.forEach(asistencia => {
@@ -67,6 +99,7 @@
                                 <td>${asistencia.dni}</td>
                                 <td>${asistencia.fecha}</td>
                                 <td>${asistencia.estado}</td>
+                                <td>${asistencia.carrera}</td>
                             </tr>
                         `;
                         tabla.innerHTML += fila;
@@ -80,16 +113,15 @@
         // Evento para el botón de Imprimir PDF
         document.getElementById('imprimirBtn').addEventListener('click', function() {
             const fecha = document.getElementById('fecha').value;
-            
+            const carrera = document.getElementById('carrera').value;
 
-
-            if (!fecha) {
-                alert('Por favor, seleccione una fecha para generar el PDF.');
+            if (!fecha || !carrera) {
+                alert('Por favor, seleccione una fecha y una carrera para generar el PDF.');
                 return;
             }
 
-            // Abre la URL del PDF en una nueva pestaña usando la fecha capturada
-            window.open(`/asistencia/pdf?fecha=${fecha}`, '_blank');
+            // Abre la URL del PDF en una nueva pestaña usando la fecha y la carrera capturadas
+            window.open(`/asistencia/pdf?fecha=${fecha}&carrera=${carrera}`, '_blank');
         });
     </script>
 </body>
