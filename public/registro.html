@@ -44,6 +44,11 @@
                 <!-- Los datos de la tabla serán insertados aquí dinámicamente -->
             </tbody>
         </table>
+
+        <!-- Contador de alumnos presentes -->
+        <div id="contador" class="mt-3">
+            Alumnos presentes: <span id="alumnosPresentes">0</span>
+        </div>
     </div>
 
     <script>
@@ -72,43 +77,52 @@
 
         // Función para realizar la búsqueda de asistencia
         document.getElementById('fechaForm').addEventListener('submit', function(event) {
-            event.preventDefault();
-            const fecha = document.getElementById('fecha').value;
-            const carrera = document.getElementById('carrera').value;
+    event.preventDefault();
+    const fecha = document.getElementById('fecha').value;
+    const carrera = document.getElementById('carrera').value;
 
-            if (!fecha || !carrera) {
-                alert('Por favor, seleccione una fecha y una carrera.');
-                return;
+    if (!fecha || !carrera) {
+        alert('Por favor, seleccione una fecha y una carrera.');
+        return;
+    }
+
+    fetch(`/asistencia?fecha=${fecha}&carrera=${carrera}`)
+        .then(response => response.json())
+        .then(data => {
+            const tabla = document.getElementById('asistenciaTabla');
+            tabla.innerHTML = ''; // Limpiar la tabla
+            let alumnosPresentes = 0;
+
+            if (data.length === 0) {
+                tabla.innerHTML = `<tr><td colspan="6" class="text-center">No se encontraron registros para esta fecha y carrera.</td></tr>`;
             }
 
-            fetch(`/asistencia?fecha=${fecha}&carrera=${carrera}`)
-                .then(response => response.json())
-                .then(data => {
-                    const tabla = document.getElementById('asistenciaTabla');
-                    tabla.innerHTML = ''; // Limpiar la tabla
+            data.forEach(asistencia => {
+                const fila = `
+                    <tr>
+                        <td>${asistencia.idasistencia}</td>
+                        <td>${asistencia.apenomb}</td>
+                        <td>${asistencia.dni}</td>
+                        <td>${asistencia.fecha}</td>
+                        <td>${asistencia.estado}</td>
+                        <td>${asistencia.carrera}</td>
+                    </tr>
+                `;
+                tabla.innerHTML += fila;
 
-                    if (data.length === 0) {
-                        tabla.innerHTML = `<tr><td colspan="6" class="text-center">No se encontraron registros para esta fecha y carrera.</td></tr>`;
-                    }
+                // Contar alumnos presentes (ajustar según los valores posibles en 'estado')
+                if (asistencia.estado === 'Presente') {  // Verifica si 'estado' tiene un valor como 'Presente'
+                    alumnosPresentes++;
+                }
+            });
 
-                    data.forEach(asistencia => {
-                        const fila = `
-                            <tr>
-                                <td>${asistencia.idasistencia}</td>
-                                <td>${asistencia.apenomb}</td>
-                                <td>${asistencia.dni}</td>
-                                <td>${asistencia.fecha}</td>
-                                <td>${asistencia.estado}</td>
-                                <td>${asistencia.carrera}</td>
-                            </tr>
-                        `;
-                        tabla.innerHTML += fila;
-                    });
-                })
-                .catch(error => {
-                    console.error('Error al obtener los datos:', error);
-                });
+            // Actualizar el contador de alumnos presentes
+            document.getElementById('alumnosPresentes').textContent = alumnosPresentes;
+        })
+        .catch(error => {
+            console.error('Error al obtener los datos:', error);
         });
+});
 
         // Evento para el botón de Imprimir PDF
         document.getElementById('imprimirBtn').addEventListener('click', function() {
@@ -126,3 +140,4 @@
     </script>
 </body>
 </html>
+
